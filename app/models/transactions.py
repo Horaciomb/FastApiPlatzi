@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .customers import Customer
+    
 class TransactionBase(SQLModel):
     amount:int =Field(default=None)
     description: str =Field(default=None)
