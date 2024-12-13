@@ -1,5 +1,6 @@
 from fastapi import APIRouter,HTTPException,status 
 from ..models.transactions import Transaction,TransactionCreate,TransactionUpdate
+from ..models.customers import Customer
 from db import SessionDep
 from sqlmodel import select
 
@@ -19,11 +20,15 @@ async def read_transaction(transaction_id: int, session: SessionDep):
 
 @router.post("/transactions", response_model=Transaction, tags=["transactions"], status_code=status.HTTP_201_CREATED)
 async def create_transaction(transaction_data: TransactionCreate, session: SessionDep):
-    transaction = Transaction.model_validate(transaction_data.model_dump())
-    session.add(transaction)
+    transaction_data_dict=transaction_data.model_dump()
+    customer= session.get(Customer, transaction_data_dict.get('customer_id'))
+    if not customer:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Customer not found')
+    transaction_db = Transaction.model_validate(transaction_data_dict)
+    session.add(transaction_db)
     session.commit()
-    session.refresh(transaction)
-    return transaction
+    session.refresh(transaction_db)
+    return transaction_db
 
 @router.patch("/transactions/{transaction_id}", response_model=Transaction, tags=["transactions"], status_code=status.HTTP_200_OK)
 async def edit_transaction(transaction_id: int, transaction_data: TransactionUpdate, session: SessionDep):
