@@ -3,7 +3,7 @@ import zoneinfo
 from datetime import datetime
 from models import Customer, Transaction,Invoice
 from db import create_all_tables
-from endpoints.customers import router as customer_router
+from .routers.customers import router as customer_router
 app = FastAPI(lifespan=create_all_tables)
 
 routers = [
