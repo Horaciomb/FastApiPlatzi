@@ -1,12 +1,16 @@
-from fastapi import FastAPI,HTTPException,status 
+from fastapi import FastAPI 
 import zoneinfo
 from datetime import datetime
-from models import Customer,CustomerCreate, Transaction,Invoice
-from db import SessionDep,create_all_tables
-from sqlmodel import select
+from models import Customer, Transaction,Invoice
+from db import create_all_tables
+from endpoints.customers import router as customer_router
 app = FastAPI(lifespan=create_all_tables)
 
-
+routers = [
+    customer_router
+]
+for router in routers:
+    app.include_router(router)
 
 @app.get("/")
 async def root():
@@ -30,23 +34,9 @@ async def time(iso_code:str):
 
 
 db_customers:list[Customer]=[]
-@app.post("/customers", response_model=Customer,tags=['customers'])
-async def create_customer(customer_data: CustomerCreate, session: SessionDep):
-    customer = Customer.model_validate(customer_data.model_dump())
-    session.add(customer)
-    session.commit()
-    session.refresh(customer)
-    return customer
 
-@app.get("/customers",response_model=list[Customer],tags=['customers'])
-async def get_customers(session: SessionDep):
-    return session.exec(select(Customer)).all()
 
-@app.get("/customers/{customer_id}", tags=['customers'])   
-async def get_customer(customer_id: int, session: SessionDep):
-    if  session.get(Customer, customer_id) == None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
-    return session.get(Customer, customer_id)
+
 
 @app.post("/transactions" ,tags=['transactions'])
 async def create_transaction(transaction_data:Transaction):
