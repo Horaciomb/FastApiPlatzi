@@ -1,13 +1,16 @@
 from fastapi import FastAPI 
 import zoneinfo
 from datetime import datetime
-from models import Customer, Transaction,Invoice
 from db import create_all_tables
 from .routers.customers import router as customer_router
+from .routers.transactions import router as transaction_router
+from .routers.invoices import router as invoice_router
 app = FastAPI(lifespan=create_all_tables)
 
 routers = [
-    customer_router
+    customer_router,
+    transaction_router,
+    invoice_router
 ]
 for router in routers:
     app.include_router(router)
@@ -33,15 +36,3 @@ async def time(iso_code:str):
     return {"time":datetime.now(tz)}
 
 
-db_customers:list[Customer]=[]
-
-
-
-
-@app.post("/transactions" ,tags=['transactions'])
-async def create_transaction(transaction_data:Transaction):
-    return transaction_data
-
-@app.post("/invoices",tags=['invoices'])
-async def create_invoice(invoice_data:Invoice):
-    return invoice_data
