@@ -5,12 +5,14 @@ from db import create_all_tables
 from .routers.customers import router as customer_router
 from .routers.transactions import router as transaction_router
 from .routers.invoices import router as invoice_router
+from .routers.plans import router as plan_router
 app = FastAPI(lifespan=create_all_tables)
 
 routers = [
     customer_router,
     transaction_router,
-    invoice_router
+    invoice_router,
+    plan_router
 ]
 for router in routers:
     app.include_router(router)
