@@ -1,4 +1,5 @@
-from fastapi import FastAPI 
+from fastapi import FastAPI, Request 
+import time
 import zoneinfo
 from datetime import datetime
 from db import create_all_tables
@@ -16,7 +17,23 @@ routers = [
 ]
 for router in routers:
     app.include_router(router)
+@app.middleware("http")
+async def log_request_time(request: Request, call_next):
+    start_time=time.time()
+    response =await call_next(request)
+    procces_time=time.time() - start_time
+    print(f"Request: {request.url} completed in: {procces_time:.4f} seconds")
+    return response
+@app.middleware("http") 
+async def log_request_headers(request: Request, call_next):
+    
+    print("Request Headers:")
+    for header, value in request.headers.items():
+        print(f"{header}: {value}")
 
+    response = await call_next(request) 
+
+    return response
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -31,7 +48,7 @@ country_timezones = {
 }
 
 @app.get("/time/{iso_code}")
-async def time(iso_code:str):
+async def get_time_by_isocode(iso_code:str):
     iso=iso_code.upper()
     timezone_str=country_timezones.get(iso)
     tz=zoneinfo.ZoneInfo(timezone_str)
